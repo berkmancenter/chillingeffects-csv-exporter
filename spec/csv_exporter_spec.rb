@@ -18,7 +18,7 @@ describe CsvExporter do
 
   it 'exports valid csv' do
     exporter = CsvExporter.connect
-    exporter.write_csv('select * from tNotice', 'tmp/test_export.csv')
+    exporter.write_csv('select * from tNotice_test', 'tmp/test_export.csv')
 
     csv = load_csv('tmp/test_export.csv')
 
@@ -49,9 +49,9 @@ describe CsvExporter do
 
   def initialize_mysql_database
     connection = CsvExporter.connect
-    connection.query('drop table `tNotice`')
+    connection.query('drop table if exists `tNotice_test`')
     connection.query(
-      'CREATE TABLE `tNotice` (
+      'CREATE TABLE `tNotice_test` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `body` longtext,
   `subject` varchar(85) DEFAULT NULL,
@@ -60,7 +60,7 @@ describe CsvExporter do
 
   2.times do |i|
     connection.query(
-      "insert into tNotice(body, subject) 
+      "insert into tNotice_test(body, subject)
       values('body #{i}', 'subject #{i}')"
     )
   end

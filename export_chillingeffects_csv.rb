@@ -8,5 +8,10 @@ ENV['mysql_database'] ||= 'chill_prod'
 
 exporter = CsvExporter.connect
 
-notice_sql = 'select * from tNotice limit 10'
+
+notice_sql = %q|select tNotice.*, group_concat(tNotImage.Location) as OriginalFilePath
+from tNotice, tNotImage
+where tNotice.NoticeID = tNotImage.NoticeID
+group by tNotice.NoticeID limit 10000|
+
 exporter.write_csv(notice_sql, 'tmp/tNotice.csv')
