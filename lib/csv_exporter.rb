@@ -32,9 +32,17 @@ class CsvExporter
     CSV.open(file_path, "wb") do |csv|
       csv << headers
       results.each do |row|
-        csv << headers.map{|header| row[header]}
+        csv << headers.map{|header| encode_string(row[header])}
       end
     end
+  end
+
+  def encode_string(input)
+   if input.respond_to?(:encode)
+     input.encode('utf-8')
+   else
+     input
+   end
   end
 
 end
