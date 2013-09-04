@@ -31,8 +31,13 @@ class CsvExporter
 
     CSV.open(file_path, "wb") do |csv|
       csv << headers
-      results.each do |row|
-        csv << headers.map{|header| encode_string(row[header])}
+    end
+
+    results.each_slice(100) do |rows|
+      rows.each do |row|
+        CSV.open(file_path, "ab") do |csv|
+          csv << headers.map{|header| encode_string(row[header])}
+        end
       end
     end
   end
