@@ -1,5 +1,8 @@
 require 'mysql2'
 require 'csv'
+require 'fileutils'
+require 'pathname'
+require 'open-uri'
 
 class CsvExporter
 
@@ -37,8 +40,38 @@ class CsvExporter
       rows.each do |row|
         CSV.open(file_path, "ab") do |csv|
           csv << headers.map{|header| encode_string(row[header])}
+          if original_file_path = row['OriginalFilePath']
+            download_files(original_file_path)
+          end
         end
       end
+    end
+  end
+
+  def download_files(file_paths)
+    file_paths.split(',').each do |exported_file_name|
+      directory_name, file_name = Pathname.new(exported_file_name).split
+      local_directory = "#{ENV['destination_dir']}#{directory_name}"
+
+      FileUtils.mkdir_p(local_directory)
+      file_to_write = "#{local_directory}/#{file_name}"
+
+      begin
+        url_to_download = "#{ENV['url_base']}#{exported_file_name}"
+        puts "Downloading: #{url_to_download}"
+
+        File.open(file_to_write, "wb") do |file|
+          open(url_to_download) do |download|
+            file.write(download.read)
+          end
+        end
+        sleep 1;
+      rescue Exception => e
+        puts "something bad happened"
+        puts e.inspect
+        File.unlink(file_to_write)
+      end
+
     end
   end
 

@@ -4,7 +4,7 @@ require 'csv'
 
 describe CsvExporter do
   before(:all) do
-    configure_mysql_connection
+    configure_exporter
   end
 
   before(:each) do
@@ -29,6 +29,13 @@ describe CsvExporter do
       ])
   end
 
+  it "calls to OpenURI to download files" do
+    exporter = CsvExporter.connect
+    exporter.should_receive(:open).twice.with('http://www.example.com/foo/bar.txt')
+    exporter.write_csv('select *, "foo/bar.txt" as OriginalFilePath from tNotice_test', 'tmp/test_export.csv')
+    expect(File.exists?('tmp/downloads/foo/bar.txt')).to be
+  end
+
  private
 
  def load_csv(path)
@@ -39,12 +46,14 @@ describe CsvExporter do
    csv
  end
 
-  def configure_mysql_connection
+  def configure_exporter
     ENV['mysql_host'] = 'localhost'
     ENV['mysql_port'] = '3306'
     ENV['mysql_username'] = 'chill_user'
     ENV['mysql_password'] = 'chill_pass'
     ENV['mysql_database'] = 'chill_prod'
+    ENV['destination_dir'] = 'tmp/downloads/'
+    ENV['url_base'] = 'http://www.example.com/'
   end
 
   def initialize_mysql_database
