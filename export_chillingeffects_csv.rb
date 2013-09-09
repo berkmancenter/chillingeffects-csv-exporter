@@ -13,6 +13,6 @@ exporter = CsvExporter.connect
 notice_sql = %q|select tNotice.*, group_concat(tNotImage.Location) as OriginalFilePath
 from tNotice, tNotImage
 where tNotice.NoticeID = tNotImage.NoticeID
-group by tNotice.NoticeID limit 1000|
+group by tNotice.NoticeID limit 100000|
 
 exporter.write_csv(notice_sql, 'tmp/tNotice.csv')

@@ -56,22 +56,23 @@ class CsvExporter
       FileUtils.mkdir_p(local_directory)
       file_to_write = "#{local_directory}/#{file_name}"
 
-      begin
-        url_to_download = "#{ENV['url_base']}#{exported_file_name}"
-        puts "Downloading: #{url_to_download}"
+      if ! File.exists?(file_to_write)
+        begin
+          url_to_download = "#{ENV['url_base']}#{exported_file_name}"
+          puts "Downloading: #{url_to_download}"
 
-        File.open(file_to_write, "wb") do |file|
-          open(url_to_download) do |download|
-            file.write(download.read)
-          end
+            File.open(file_to_write, "wb") do |file|
+            open(url_to_download) do |download|
+              file.write(download.read)
+            end
+            end
+          sleep 1;
+        rescue Exception => e
+          puts "something bad happened"
+          puts e.inspect
+          File.unlink(file_to_write)
         end
-        sleep 1;
-      rescue Exception => e
-        puts "something bad happened"
-        puts e.inspect
-        File.unlink(file_to_write)
       end
-
     end
   end
 
