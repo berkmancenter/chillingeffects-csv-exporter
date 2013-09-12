@@ -28,17 +28,18 @@ class CsvExporter
     @connection.query(*query)
   end
 
-  def write_csv(sql_query, file_path)
+  def write_csv(sql_query, csv_file_name)
     results = self.query(sql_query)
     headers = results.first.keys
+    csv_file = "#{ENV['destination_dir']}#{csv_file_name}"
 
-    CSV.open(file_path, "wb") do |csv|
+    CSV.open(csv_file, "wb") do |csv|
       csv << headers
     end
 
     results.each_slice(100) do |rows|
       rows.each do |row|
-        CSV.open(file_path, "ab") do |csv|
+        CSV.open(csv_file, "ab") do |csv|
           csv << headers.map{|header| encode_string(row[header])}
           if original_file_path = row['OriginalFilePath']
             download_files(original_file_path)
@@ -61,12 +62,11 @@ class CsvExporter
           url_to_download = "#{ENV['url_base']}#{exported_file_name}"
           puts "Downloading: #{url_to_download}"
 
-            File.open(file_to_write, "wb") do |file|
+          File.open(file_to_write, "wb") do |file|
             open(url_to_download) do |download|
               file.write(download.read)
             end
-            end
-          sleep 1;
+          end
         rescue Exception => e
           puts "something bad happened"
           puts e.inspect
