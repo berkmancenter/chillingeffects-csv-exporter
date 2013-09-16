@@ -1,9 +1,5 @@
-require 'mysql2'
 require 'csv'
-require 'fileutils'
-require 'pathname'
-require 'open-uri'
-require 'original_downloader'
+require 'mysql2'
 
 class CsvExporter
 
