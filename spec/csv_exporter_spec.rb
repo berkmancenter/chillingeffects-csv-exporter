@@ -18,7 +18,7 @@ describe CsvExporter do
 
   it 'exports valid csv' do
     exporter = CsvExporter.connect
-    exporter.write_csv('select * from tNotice_test', 'tmp/test_export.csv')
+    exporter.write_csv('select * from tNotice_test', 'test_export.csv')
 
     csv = load_csv('tmp/test_export.csv')
 
@@ -29,22 +29,31 @@ describe CsvExporter do
       ])
   end
 
-  it "calls to OpenURI to download files" do
+  it "uses OriginalDownloader and updates OriginalFilePath" do
+    downloader = OriginalDownloader.new('')
+    downloader.should_receive(:download)
+    downloader.should_receive(:downloaded_files).and_return([
+      'foo/bar.txt', 'baz.txt'
+    ])
+    OriginalDownloader.should_receive(:new).
+      with('foo/bar.html,baz.txt').and_return(downloader)
     exporter = CsvExporter.connect
-    exporter.should_receive(:open).twice.with('http://www.example.com/foo/bar.txt')
-    exporter.write_csv('select *, "foo/bar.txt" as OriginalFilePath from tNotice_test', 'tmp/test_export.csv')
-    expect(File.exists?('tmp/downloads/foo/bar.txt')).to be
+
+    exporter.write_csv('select *, "foo/bar.html,baz.txt" as OriginalFilePath from tNotice_test limit 1', 'test_export.csv')
+
+    csv = load_csv('./tmp/test_export.csv')
+    expect(csv.first['OriginalFilePath']).to eq 'foo/bar.txt,baz.txt'
   end
 
- private
+  private
 
- def load_csv(path)
-   csv = []
-   CSV.foreach(path, headers: true) do |csv_row|
-     csv << csv_row.to_hash
-   end
-   csv
- end
+  def load_csv(path)
+    csv = []
+    CSV.foreach(path, headers: true) do |csv_row|
+      csv << csv_row.to_hash
+    end
+    csv
+  end
 
   def configure_exporter
     ENV['mysql_host'] = 'localhost'
@@ -58,22 +67,22 @@ describe CsvExporter do
 
   def initialize_mysql_database
     connection = CsvExporter.connect
-    connection.query('drop table if exists `tNotice_test`')
-    connection.query(
-      'CREATE TABLE `tNotice_test` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `body` longtext,
-  `subject` varchar(85) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-  )')
+    connection.query('DROP TABLE IF EXISTS `tNotice_test`')
+    connection.query(<<-EOSQL)
+      CREATE TABLE `tNotice_test` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `body` longtext,
+        `subject` varchar(85) DEFAULT NULL,
+        PRIMARY KEY (`id`)
+      )
+    EOSQL
 
-  2.times do |i|
-    connection.query(
-      "insert into tNotice_test(body, subject)
-      values('body #{i}', 'subject #{i}')"
-    )
-  end
-
+    2.times do |i|
+      connection.query(<<-EOSQL)
+        INSERT INTO tNotice_test(body, subject)
+        VALUES('body #{i}', 'subject #{i}')
+      EOSQL
+    end
   end
 
 end
