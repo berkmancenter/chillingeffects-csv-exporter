@@ -10,9 +10,14 @@ ENV['destination_dir'] ||= 'downloads/'
 
 exporter = CsvExporter.connect
 
-notice_sql = %q|select tNotice.*, group_concat(tNotImage.Location) as OriginalFilePath
-from tNotice, tNotImage
-where tNotice.NoticeID = tNotImage.NoticeID
-group by tNotice.NoticeID limit 100|
+notice_sql = <<EOSQL
+SELECT tNotice.*,
+       GROUP_CONCAT(tNotImage.Location) AS OriginalFilePath
+  FROM tNotice
+  JOIN tNotImage
+    ON tNotImage.NoticeID = tNotice.NoticeID
+GROUP BY tNotice.NoticeID
+ORDER BY RAND() LIMIT 100
+EOSQL
 
 exporter.write_csv(notice_sql, 'tNotice.csv')
