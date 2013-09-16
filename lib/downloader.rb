@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'open-uri'
 
-class OriginalDownloader
+class Downloader
 
   attr_reader :downloaded_files
 

@@ -29,20 +29,22 @@ describe CsvExporter do
       ])
   end
 
-  it "uses OriginalDownloader and updates OriginalFilePath" do
-    downloader = OriginalDownloader.new('')
-    downloader.should_receive(:download)
-    downloader.should_receive(:downloaded_files).and_return([
-      'foo/bar.txt', 'baz.txt'
-    ])
-    OriginalDownloader.should_receive(:new).
-      with('foo/bar.html,baz.txt').and_return(downloader)
-    exporter = CsvExporter.connect
+  %w( OriginalFilePath SupportingFilePath ).each do |field|
+    it "uses Downloader and updates #{field}" do
+      downloader = Downloader.new('')
+      downloader.should_receive(:download)
+      downloader.should_receive(:downloaded_files).and_return([
+        'foo/bar.txt', 'baz.txt'
+      ])
+      Downloader.should_receive(:new).
+        with('foo/bar.html,baz.txt').and_return(downloader)
+      exporter = CsvExporter.connect
 
-    exporter.write_csv('select *, "foo/bar.html,baz.txt" as OriginalFilePath from tNotice_test limit 1', 'test_export.csv')
+      exporter.write_csv("select *, \"foo/bar.html,baz.txt\" as #{field} from tNotice_test limit 1", 'test_export.csv')
 
-    csv = load_csv('./tmp/test_export.csv')
-    expect(csv.first['OriginalFilePath']).to eq 'foo/bar.txt,baz.txt'
+      csv = load_csv('./tmp/test_export.csv')
+      expect(csv.first[field]).to eq 'foo/bar.txt,baz.txt'
+    end
   end
 
   private

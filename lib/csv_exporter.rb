@@ -33,13 +33,15 @@ class CsvExporter
       results.each_slice(100) do |rows|
         rows.each do |row|
           CSV.open(csv_file, "ab") do |csv|
-            if file_paths = row['OriginalFilePath']
-              downloader = OriginalDownloader.new(file_paths)
-              downloader.download
+            %w( OriginalFilePath SupportingFilePath ).each do |field|
+              if file_paths = row[field]
+                downloader = Downloader.new(file_paths)
+                downloader.download
 
-              # The actually downloaded name, may differ. Update it so we
-              # don't have to duplicate the knowledge on the import side.
-              row['OriginalFilePath'] = downloader.downloaded_files.join(',')
+                # The actually downloaded name, may differ. Update it so we
+                # don't have to duplicate the knowledge on the import side.
+                row[field] = downloader.downloaded_files.join(',')
+              end
             end
 
             csv << headers.map{|header| encode_string(row[header])}

@@ -1,4 +1,4 @@
-require './lib/original_downloader'
+require './lib/downloader'
 require './lib/csv_exporter.rb'
 
 ENV['mysql_host'] ||= 'localhost'

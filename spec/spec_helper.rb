@@ -3,6 +3,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'simplecov'
 SimpleCov.start
 require 'rspec'
+require 'downloader'
 require 'csv_exporter'
 
 # Requires supporting files with custom matchers and macros, etc,
