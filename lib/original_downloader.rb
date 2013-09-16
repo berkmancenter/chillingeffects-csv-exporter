@@ -49,8 +49,10 @@ class OriginalDownloader
           file.write(download.read)
         end
       end
+    rescue OpenURI::HTTPError
+      # Ignore 404's
     rescue Exception => ex
-      $stderr.puts "Error (#{file_path})", ex.inspect
+      $stderr.puts "Error (#{file_path}), #{ex.inspect}"
       rm file_path; false
     end
 
