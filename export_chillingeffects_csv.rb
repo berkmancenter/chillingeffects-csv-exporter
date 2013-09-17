@@ -14,7 +14,8 @@ exporter = CsvExporter.connect
 notice_sql = <<EOSQL
 SELECT tNotice.*,
        group_concat(originals.Location)  AS OriginalFilePath,
-       group_concat(supporting.Location) AS SupportingFilePath
+       group_concat(supporting.Location) AS SupportingFilePath,
+       tCat.CatName as CategoryName
   FROM tNotice
 LEFT JOIN tNotImage originals
        ON originals.NoticeID   = tNotice.NoticeID
@@ -22,6 +23,8 @@ LEFT JOIN tNotImage originals
 LEFT JOIN tNotImage supporting
        ON supporting.NoticeID   = tNotice.NoticeID
       AND supporting.ReadLevel != 0
+LEFT JOIN tCat
+       ON tCat.CatId = tNotice.CatId
 WHERE tNotice.Subject IS NOT NULL
 GROUP BY tNotice.NoticeID
 ORDER BY tNotice.NoticeID DESC
