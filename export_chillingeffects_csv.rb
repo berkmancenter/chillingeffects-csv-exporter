@@ -13,12 +13,19 @@ exporter = CsvExporter.connect
 
 notice_sql = <<EOSQL
 SELECT tNotice.*,
-       GROUP_CONCAT(tNotImage.Location) AS OriginalFilePath
+       group_concat(originals.Location)  AS OriginalFilePath,
+       group_concat(supporting.Location) AS SupportingFilePath
   FROM tNotice
-  JOIN tNotImage
-    ON tNotImage.NoticeID = tNotice.NoticeID
+LEFT JOIN tNotImage originals
+       ON originals.NoticeID   = tNotice.NoticeID
+      AND originals.ReadLevel != 0
+LEFT JOIN tNotImage supporting
+       ON supporting.NoticeID   = tNotice.NoticeID
+      AND supporting.ReadLevel != 0
+WHERE tNotice.Subject IS NOT NULL
 GROUP BY tNotice.NoticeID
-ORDER BY RAND() LIMIT 100
+ORDER BY tNotice.NoticeID DESC
+LIMIT 100
 EOSQL
 
 exporter.write_csv(notice_sql, 'tNotice.csv')
