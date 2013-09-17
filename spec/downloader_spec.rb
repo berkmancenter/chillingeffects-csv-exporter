@@ -14,10 +14,9 @@ describe Downloader do
     # N.B. we actually care about order
     expect(downloader.downloaded_files).to eq %w(
       foo.txt
-      bar.html bar.txt
-      files_by_time/4444/22/22/22/baz.html
-      files_by_time/4444/22/22/22/baz.txt baz.html
-      sub/bat.html sub/bat.txt
+      bar.txt
+      files_by_time/4444/22/22/22/baz.txt
+      sub/bat.txt
     )
   end
 
@@ -28,6 +27,7 @@ describe Downloader do
 
     it "downloads to a local location" do
       remote_file = Downloader::RemoteFile.new('sub/foo.txt')
+      remote_file.stub(:puts)
       remote_file.should_receive(:open).
         with("http://example.com/sub/foo.txt").and_yield(response)
 

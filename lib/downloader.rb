@@ -12,9 +12,13 @@ class Downloader
 
   def download
     file_paths.each do |file_path|
-      potential_paths(file_path).each do |remote_file|
-        file = RemoteFile.new(remote_file)
-        file.fetch and downloaded_files << remote_file
+      potential_paths(file_path).each do |potential_path|
+        remote_file = RemoteFile.new(potential_path)
+
+        if remote_file.fetch
+          downloaded_files << potential_path
+          break
+        end
       end
     end
   end
@@ -25,8 +29,8 @@ class Downloader
 
   def potential_paths(file_path)
     [
-      file_path,
       file_path.sub(/\.html$/, '.txt'),
+      file_path,
       file_path.sub(%r{files_by_time/\d{4}/(\d{2}/){3}}, '')
     ].uniq
   end
@@ -49,8 +53,12 @@ class Downloader
           file.write(download.read)
         end
       end
+
+      puts "Downloaded: #{remote_url}"; true
+
     rescue OpenURI::HTTPError
       # Ignore 404's
+      rm file_path; false
     rescue Exception => ex
       $stderr.puts "Error (#{file_path}), #{ex.inspect}"
       rm file_path; false
