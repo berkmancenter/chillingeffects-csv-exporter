@@ -32,3 +32,19 @@ LIMIT 100
 EOSQL
 
 exporter.write_csv(notice_sql, 'tNotice.csv')
+
+blog_sql = <<EOBLOG
+SELECT tNews.NewsID, concat_ws(', ', tNews.Byline, tNews.Source) as author,
+  tNews.Headline as title,
+  URL as url,
+  CAST(tNews.Abstract as char CHARACTER SET UTF8) as abstract,
+  CAST(tNews.Body as char CHARACTER SET UTF8) as content,
+  tNews.add_date as published_at, tNews.add_date as created_at,
+  tNews.alter_date as updated_at, tCat.CatName as CategoryName
+FROM tNews
+LEFT JOIN tCat
+       ON tCat.CatId = tNews.CatId
+where tNews.Readlevel = 0
+EOBLOG
+
+exporter.write_csv(blog_sql, 'tNews.csv')

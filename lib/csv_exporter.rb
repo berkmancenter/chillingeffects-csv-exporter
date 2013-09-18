@@ -43,7 +43,6 @@ class CsvExporter
                 row[field] = downloader.downloaded_files.join(',')
               end
             end
-
             csv << headers.map{|header| encode_string(row[header])}
           end
         end
@@ -59,7 +58,7 @@ class CsvExporter
 
   def encode_string(input)
    if input.respond_to?(:encode)
-     input.encode('utf-8')
+     input.encode('UTF-16', invalid: :replace).encode('UTF-8')
    else
      input
    end
