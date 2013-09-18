@@ -11,7 +11,7 @@ ENV['destination_dir'] ||= 'downloads/'
 
 exporter = CsvExporter.connect
 
-notice_sql = <<EOSQL
+exporter.write_csv(<<EOSQL, 'tNotice.csv')
 SELECT tNotice.*,
        group_concat(originals.Location)  AS OriginalFilePath,
        group_concat(supporting.Location) AS SupportingFilePath,
@@ -22,18 +22,17 @@ LEFT JOIN tNotImage originals
       AND originals.ReadLevel != 0
 LEFT JOIN tNotImage supporting
        ON supporting.NoticeID   = tNotice.NoticeID
-      AND supporting.ReadLevel != 0
+      AND supporting.ReadLevel  = 0
 LEFT JOIN tCat
        ON tCat.CatId = tNotice.CatId
 WHERE tNotice.Subject IS NOT NULL
 GROUP BY tNotice.NoticeID
+
 ORDER BY tNotice.NoticeID DESC
 LIMIT 100
 EOSQL
 
-exporter.write_csv(notice_sql, 'tNotice.csv')
-
-blog_sql = <<EOBLOG
+exporter.write_csv(<<EOSQL, 'tNews.csv')
 SELECT tNews.NewsID, concat_ws(', ', tNews.Byline, tNews.Source) as author,
   tNews.Headline as title,
   URL as url,
@@ -45,6 +44,12 @@ FROM tNews
 LEFT JOIN tCat
        ON tCat.CatId = tNews.CatId
 where tNews.Readlevel = 0
-EOBLOG
+EOSQL
 
-exporter.write_csv(blog_sql, 'tNews.csv')
+exporter.write_csv(<<EOSQL, 'tQuestion.csv')
+SELECT rQueNot.NoticeID as OriginalNoticeID,
+       tQuestion.Question
+  FROM rQueNot
+  JOIN tQuestion
+    ON tQuestion.QuestionID = rQueNot.QuestionID
+EOSQL

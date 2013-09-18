@@ -44,7 +44,7 @@ class Downloader
     end
 
     def fetch
-      return if File.exists?(file_path)
+      return true if File.exists?(file_path)
 
       mkdir_p(directory)
 
