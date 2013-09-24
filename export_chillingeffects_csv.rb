@@ -15,7 +15,7 @@ exporter.write_csv(<<EOSQL, 'tNotice.csv')
 SELECT tNotice.*,
        group_concat(originals.Location)  AS OriginalFilePath,
        group_concat(supporting.Location) AS SupportingFilePath,
-       tCat.CatName as CategoryName
+       tCat.CatName as CategoryName, rSubmit.sID as SubmissionID
   FROM tNotice
 LEFT JOIN tNotImage originals
        ON originals.NoticeID   = tNotice.NoticeID
@@ -25,11 +25,11 @@ LEFT JOIN tNotImage supporting
       AND supporting.ReadLevel  = 0
 LEFT JOIN tCat
        ON tCat.CatId = tNotice.CatId
+LEFT JOIN rSubmit
+       ON rSubmit.NoticeID = tNotice.NoticeID
 WHERE tNotice.Subject IS NOT NULL
 GROUP BY tNotice.NoticeID
-
 ORDER BY tNotice.NoticeID DESC
-LIMIT 100
 EOSQL
 
 exporter.write_csv(<<EOSQL, 'tNews.csv')

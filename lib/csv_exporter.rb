@@ -12,7 +12,10 @@ class CsvExporter
         username: ENV['mysql_username'],
         password: ENV['mysql_password'],
         port: ENV['mysql_port'].to_i,
-        database: ENV['mysql_database']
+        database: ENV['mysql_database'],
+        reconnect: true,
+        read_timeout: 28800,
+        connect_timeout: 28800
       )
     )
   end
@@ -30,38 +33,36 @@ class CsvExporter
         csv << headers
       end
 
-      results.each_slice(100) do |rows|
-        rows.each do |row|
-          CSV.open(csv_file, "ab") do |csv|
-            %w( OriginalFilePath SupportingFilePath ).each do |field|
-              if file_paths = row[field]
-                downloader = Downloader.new(file_paths)
-                downloader.download
+      results.each do |row|
+        CSV.open(csv_file, "ab") do |csv|
+          %w( OriginalFilePath SupportingFilePath ).each do |field|
+            if file_paths = row[field]
+              downloader = Downloader.new(file_paths)
+              downloader.download
 
-                # The actually downloaded name, may differ. Update it so we
-                # don't have to duplicate the knowledge on the import side.
-                row[field] = downloader.downloaded_files.join(',')
-              end
+              # The actually downloaded name, may differ. Update it so we
+              # don't have to duplicate the knowledge on the import side.
+              row[field] = downloader.downloaded_files.join(',')
             end
-            csv << headers.map{|header| encode_string(row[header])}
           end
+          csv << headers.map{|header| encode_string(row[header])}
         end
       end
     end
   end
 
   def query(*query)
-    @connection.query(*query)
+    @connection.query(*query, stream: true)
   end
 
   private
 
   def encode_string(input)
-   if input.respond_to?(:encode)
-     input.encode('UTF-16', invalid: :replace).encode('UTF-8')
-   else
-     input
-   end
+    if input.respond_to?(:encode)
+      input.encode('UTF-16', invalid: :replace).encode('UTF-8')
+    else
+      input
+    end
   end
 
 end
