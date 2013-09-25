@@ -58,8 +58,8 @@ class CsvExporter
   private
 
   def encode_string(input)
-    if input.respond_to?(:encode)
-      input.encode('UTF-16', invalid: :replace).encode('UTF-8')
+    if input.respond_to?(:valid_encoding?) && ! input.valid_encoding?
+      input.unpack('C*').pack('U*')
     else
       input
     end
