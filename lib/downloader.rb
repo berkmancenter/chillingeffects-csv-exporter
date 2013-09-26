@@ -6,7 +6,8 @@ class Downloader
   attr_reader :downloaded_files
 
   def initialize(file_paths)
-    @file_paths = file_paths.split(',')
+    @file_paths = file_paths.split(',').
+      map { |path| path.gsub(/\A\//,'') }
     @downloaded_files = []
   end
 
