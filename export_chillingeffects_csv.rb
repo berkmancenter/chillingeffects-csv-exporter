@@ -11,7 +11,32 @@ ENV['destination_dir'] ||= 'downloads/'
 
 exporter = CsvExporter.connect
 
-exporter.write_csv(<<EOSQL, 'tNotice.csv')
+notice_slices = [
+  {
+    where: 'tNotice.NoticeID > 0 and tNotice.NoticeID <= 250000',
+    name: '250000'
+  },
+  {
+    where: 'tNotice.NoticeID > 250000 and tNotice.NoticeID <= 500000',
+    name: '500000'
+  },
+  {
+    where: 'tNotice.NoticeID > 500000 and tNotice.NoticeID <= 750000',
+    name: '750000'
+  },
+  {
+    where: 'tNotice.NoticeID > 750000 and tNotice.NoticeID <= 1000000',
+    name: '1000000'
+  },
+  {
+    where: 'tNotice.NoticeID > 1000000',
+    name: '1200000'
+  },
+]
+
+
+notice_slices.each do |notice_slice|
+exporter.write_csv(<<EOSQL, "tNotice-#{notice_slice[:name]}.csv")
 SELECT tNotice.*,
        group_concat(originals.Location)  AS OriginalFilePath,
        group_concat(supporting.Location) AS SupportingFilePath,
@@ -27,10 +52,12 @@ LEFT JOIN tCat
        ON tCat.CatId = tNotice.CatId
 LEFT JOIN rSubmit
        ON rSubmit.NoticeID = tNotice.NoticeID
-WHERE tNotice.Subject IS NOT NULL
+WHERE tNotice.Subject IS NOT NULL AND
+(#{notice_slice[:where]})
 GROUP BY tNotice.NoticeID
 ORDER BY tNotice.NoticeID DESC
 EOSQL
+end
 
 exporter.write_csv(<<EOSQL, 'tNews.csv')
 SELECT tNews.NewsID, concat_ws(', ', tNews.Byline, tNews.Source) as author,
