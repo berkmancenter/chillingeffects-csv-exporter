@@ -12,31 +12,19 @@ ENV['destination_dir'] ||= 'downloads/'
 exporter = CsvExporter.connect
 
 notice_slices = [
-  {
-    where: 'tNotice.NoticeID > 0 and tNotice.NoticeID <= 250000',
-    name: '250000'
-  },
-  {
-    where: 'tNotice.NoticeID > 250000 and tNotice.NoticeID <= 500000',
-    name: '500000'
-  },
-  {
-    where: 'tNotice.NoticeID > 500000 and tNotice.NoticeID <= 750000',
-    name: '750000'
-  },
-  {
-    where: 'tNotice.NoticeID > 750000 and tNotice.NoticeID <= 1000000',
-    name: '1000000'
-  },
-  {
-    where: 'tNotice.NoticeID > 1000000',
-    name: '1200000'
-  },
+  [0, 250000],
+  [250000, 500000],
+  [500000, 600000],
+  [600000, 700000],
+  [700000, 800000],
+  [800000, 900000],
+  [900000, 1000000],
+  [1000000, 1100000],
+  [1100000, 1500000]
 ]
 
-
 notice_slices.each do |notice_slice|
-exporter.write_csv(<<EOSQL, "tNotice-#{notice_slice[:name]}.csv")
+exporter.write_csv(<<EOSQL, "tNotice-#{notice_slice[0]}.csv")
 SELECT tNotice.*,
        group_concat(originals.Location)  AS OriginalFilePath,
        group_concat(supporting.Location) AS SupportingFilePath,
@@ -53,9 +41,9 @@ LEFT JOIN tCat
 LEFT JOIN rSubmit
        ON rSubmit.NoticeID = tNotice.NoticeID
 WHERE tNotice.Subject IS NOT NULL AND
-(#{notice_slice[:where]})
+(tNotice.NoticeID > #{notice_slice[0]} and tNotice.NoticeID <= #{notice_slice[1]})
 GROUP BY tNotice.NoticeID
-ORDER BY tNotice.NoticeID DESC
+ORDER BY tNotice.NoticeID ASC
 EOSQL
 end
 
