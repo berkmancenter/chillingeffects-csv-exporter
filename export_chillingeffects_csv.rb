@@ -11,20 +11,13 @@ ENV['destination_dir'] ||= 'downloads/'
 
 exporter = CsvExporter.connect
 
-notice_slices = [
-  [0, 250000],
-  [250000, 500000],
-  [500000, 600000],
-  [600000, 700000],
-  [700000, 800000],
-  [800000, 900000],
-  [900000, 1000000],
-  [1000000, 1100000],
-  [1100000, 1500000]
-]
+ids = exporter.query('select NoticeID from tNotice order by rand()').map do |row|
+  row['NoticeID']
+end
 
-notice_slices.each do |notice_slice|
-exporter.write_csv(<<EOSQL, "tNotice-#{notice_slice[0]}.csv")
+slice_count = 1
+ids.each_slice((ids.length / 9).ceil + 1) do |slice|
+  exporter.write_csv(<<EOSQL, "tNotice-#{slice_count}.csv")
 SELECT tNotice.*,
        group_concat(originals.Location)  AS OriginalFilePath,
        group_concat(supporting.Location) AS SupportingFilePath,
@@ -41,10 +34,11 @@ LEFT JOIN tCat
 LEFT JOIN rSubmit
        ON rSubmit.NoticeID = tNotice.NoticeID
 WHERE tNotice.Subject IS NOT NULL AND
-(tNotice.NoticeID > #{notice_slice[0]} and tNotice.NoticeID <= #{notice_slice[1]})
+tNotice.NoticeID in (#{slice.join(',')})
 GROUP BY tNotice.NoticeID
 ORDER BY tNotice.NoticeID ASC
 EOSQL
+  slice_count += 1
 end
 
 exporter.write_csv(<<EOSQL, 'tNews.csv')
