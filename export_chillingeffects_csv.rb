@@ -33,8 +33,7 @@ LEFT JOIN tCat
        ON tCat.CatId = tNotice.CatId
 LEFT JOIN rSubmit
        ON rSubmit.NoticeID = tNotice.NoticeID
-WHERE tNotice.Subject IS NOT NULL AND
-tNotice.NoticeID in (#{slice.join(',')})
+WHERE tNotice.NoticeID in (#{slice.join(',')})
 GROUP BY tNotice.NoticeID
 ORDER BY tNotice.NoticeID ASC
 EOSQL
