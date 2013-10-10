@@ -18,7 +18,7 @@ end
 slice_count = 1
 ids.each_slice((ids.length / 9).ceil + 1) do |slice|
   exporter.write_csv(<<EOSQL, "tNotice-#{slice_count}.csv")
-SELECT tNotice.*,
+SELECT tNotice.*, unredacted.Body as BodyOriginal,
        group_concat(originals.Location)  AS OriginalFilePath,
        group_concat(supporting.Location) AS SupportingFilePath,
        tCat.CatName as CategoryName, rSubmit.sID as SubmissionID
@@ -26,6 +26,8 @@ SELECT tNotice.*,
 LEFT JOIN tNotImage originals
        ON originals.NoticeID   = tNotice.NoticeID
       AND originals.ReadLevel != 0
+LEFT JOIN tNoticePriv as unredacted
+      on  unredacted.NoticeID    = tNotice.NoticeID
 LEFT JOIN tNotImage supporting
        ON supporting.NoticeID   = tNotice.NoticeID
       AND supporting.ReadLevel  = 0
